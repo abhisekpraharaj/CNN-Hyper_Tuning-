@@ -1,4 +1,4 @@
-# CNN-Hyper_Tuning(War_in_Progrss)-
+# CNN-Hyper_Tuning(War_in_Progress)-
 This repository focuses on a model where hyperparameters are automatically tuned to optimize performance. The best model, after tuning, is then evaluated on the test data to determine its accuracy and overall performance.
 
 
