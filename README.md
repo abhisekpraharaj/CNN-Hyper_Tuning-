@@ -45,40 +45,160 @@ Five lists are populated:
 
 These outputs are not directly displayed but are stored in memory for further processing. This feature extraction step is likely preparing the data for analysis or for input into a machine learning model. The binary classification (dog/not dog) suggests this might be part of a dog breed classification task or a dog detection task.
 
-# Model Building
-This block defines a function `build_model` that creates a convolutional neural network (CNN) architecture using Keras. The function is designed to work with Keras Tuner for hyperparameter optimization. Here's a breakdown of what's happening:
+### Model Building
+This is a Convolutional Neural Network (CNN) model with several layers designed for binary classification, likely based on your earlier project with the 'Dogs vs. Cats' dataset. The model structure combines convolutional layers, batch normalization, pooling, and dropout layers, followed by dense layers for classification. It incorporates hyperparameter tuning using `keras_tuner` to optimize the model during training. Let's break down its architecture:
 
-1. The function takes a `hp` (hyperparameters) argument from Keras Tuner.
+### 1. **Input Layer**
+   - Takes an input image of shape `(img_width, img_height, 3)` (3 channels for RGB).
+   
+### 2. **Convolutional Layer 1**
+   - **Filters**: Variable, determined by hyperparameter tuning between 32 and 128, incremented by 32.
+   - **Kernel Size**: Either 3x3 or 5x5, depending on the tuning.
+   - **Activation Function**: ReLU.
+   - **Padding**: `same` padding to maintain spatial dimensions.
+   - **Regularization**: L2 regularization applied with a tunable factor between 1e-5 and 1e-1.
+   
+### 3. **Batch Normalization 1**
+   - Normalizes the output of the first convolutional layer, helping stabilize and speed up the training process.
+   
+### 4. **Max Pooling 1**
+   - Pooling size is (2, 2), reducing the spatial dimensions by half.
+   
+### 5. **Convolutional Layer 2**
+   - **Filters**: Tunable between 64 and 128, with a step size of 64.
+   - **Kernel Size**: Tunable to either 3x3 or 5x5.
+   - **Activation Function**: ReLU.
+   - **Padding**: `same`.
+   - **Regularization**: L2 regularization between 1e-3 and 1e-2.
+   
+### 6. **Batch Normalization 2**
+   - Normalizes the output of the second convolutional layer.
 
-2. It creates a Sequential model with the following structure:
-   - Input layer: Expects images of size (img_width, img_height, 3)
-   - Three Convolutional layers, each followed by BatchNormalization and MaxPooling2D
-   - Dropout layers after the second and third convolutional blocks
-   - A Flatten layer to transition from convolutional to dense layers
-   - One Dense layer
-   - A final Dense layer with sigmoid activation for binary classification
+### 7. **Max Pooling 2**
+   - Pooling size is (2, 2), reducing the spatial dimensions.
 
-3. Each layer has hyperparameters that can be tuned:
-   - Number of filters in Conv2D layers
-   - Kernel sizes for Conv2D layers
-   - L2 regularization strength
-   - Dropout rates
-   - Number of units in the Dense layer
+### 8. **Dropout 1**
+   - Dropout rate is tunable between 0.1 and 0.4, used to prevent overfitting by randomly turning off a percentage of neurons during training.
 
-4. The model is compiled with:
-   - Adam optimizer (with tunable learning rate)
-   - Binary crossentropy loss (suitable for binary classification)
-   - Accuracy metric
+### 9. **Convolutional Layer 3**
+   - **Filters**: Tunable between 128 and 512, with a step size of 128.
+   - **Kernel Size**: Tunable to either 3x3 or 5x5.
+   - **Activation Function**: ReLU.
+   - **Padding**: `same`.
+   - **Regularization**: L2 regularization between 1e-4 and 1e-2.
+   
+### 10. **Batch Normalization 3**
+   - Normalizes the output of the third convolutional layer.
 
-5. After defining the function, it's called once with a new HyperParameters object.
+### 11. **Max Pooling 3**
+   - Pooling size is (2, 2), reducing the spatial dimensions.
 
-Outputs:
-- The function itself doesn't produce any direct output when defined.
-- The last line `build_model(keras_tuner.HyperParameters())` creates and returns a model instance, but this instance isn't stored or used directly in this block.
+### 12. **Dropout 2**
+   - Dropout rate is tunable between 0.2 and 0.3.
 
-This architecture suggests a binary image classification task (likely the dog/not dog classification hinted at in the previous block). The use of Keras Tuner indicates that this model will be optimized by searching over the defined hyperparameter space to find the best configuration.
+### 13. **Flatten Layer**
+   - Converts the multi-dimensional tensor from the convolutional layers into a one-dimensional tensor.
 
-The flexibility in the architecture (tunable hyperparameters) allows for finding an optimal model structure for the specific problem at hand.
+### 14. **Dense Layer 1**
+   - **Units**: Tunable between 64 and 512, in steps of 64.
+   - **Activation Function**: ReLU.
+   - **Regularization**: L2 regularization between 1e-3 and 1e-2.
+
+### 15. **Dropout 3**
+   - Dropout rate is tunable between 0.1 and 0.2.
+
+### 16. **Output Layer**
+   - **Units**: 1 (single neuron).
+   - **Activation Function**: Sigmoid, used for binary classification output.
+   
+### 17. **Optimizer and Learning Rate Schedule**
+   - **Optimizer**: Adam optimizer with an exponentially decaying learning rate, starting at `1e-4`, decaying every 10,000 steps by a factor of 0.9.
+   
+### 18. **Loss Function**
+   - **Binary Crossentropy**: Used for binary classification problems.
+
+### 19. **Metrics**
+   - **Accuracy**: Used to evaluate model performance during training.
+
+### Hyperparameters Tuned
+- Number of filters for Conv layers.
+- Kernel size for Conv layers.
+- L2 regularization factor for different Conv and Dense layers.
+- Dropout rates.
+- Number of units in the first Dense layer.
+
+This model is designed to optimize both accuracy and generalization with adjustable parameters for different layers and regularization techniques (L2 and Dropout). Hyperparameter tuning will help identify the best-performing configuration.
+
+
+## Tuner Search Summary
+Search space summary
+Default search space size: 11
+conv_1_filter (Int)
+{'default': None, 'conditions': [], 'min_value': 32, 'max_value': 128, 'step': 32, 'sampling': 'linear'}
+conv_1_kernel (Choice)
+{'default': 3, 'conditions': [], 'values': [3, 5], 'ordered': True}
+l2 (Float)
+{'default': 1e-05, 'conditions': [], 'min_value': 1e-05, 'max_value': 0.1, 'step': None, 'sampling': 'log'}
+conv_2_filter (Int)
+{'default': None, 'conditions': [], 'min_value': 64, 'max_value': 128, 'step': 64, 'sampling': 'linear'}
+conv_2_kernel (Choice)
+{'default': 3, 'conditions': [], 'values': [3, 5], 'ordered': True}
+dropout_1 (Float)
+{'default': 0.1, 'conditions': [], 'min_value': 0.1, 'max_value': 0.4, 'step': 0.1, 'sampling': 'linear'}
+conv_3_filter (Int)
+{'default': None, 'conditions': [], 'min_value': 128, 'max_value': 512, 'step': 128, 'sampling': 'linear'}
+conv_3_kernel (Choice)
+{'default': 3, 'conditions': [], 'values': [3, 5], 'ordered': True}
+dropout_2 (Float)
+{'default': 0.2, 'conditions': [], 'min_value': 0.2, 'max_value': 0.3, 'step': 0.1, 'sampling': 'linear'}
+dense_1_units (Int)
+{'default': None, 'conditions': [], 'min_value': 64, 'max_value': 512, 'step': 64, 'sampling': 'linear'}
+dropout_3 (Float)
+{'default': 0.1, 'conditions': [], 'min_value': 0.1, 'max_value': 0.2, 'step': 0.1, 'sampling': 'linear'}
+
+Best Model:
+Model: "sequential"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Layer (type)                    ┃ Output Shape           ┃       Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ conv2d (Conv2D)                 │ (None, 180, 180, 96)   │         7,296 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ batch_normalization             │ (None, 180, 180, 96)   │           384 │
+│ (BatchNormalization)            │                        │               │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ max_pooling2d (MaxPooling2D)    │ (None, 90, 90, 96)     │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ conv2d_1 (Conv2D)               │ (None, 90, 90, 128)    │       110,720 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ batch_normalization_1           │ (None, 90, 90, 128)    │           512 │
+│ (BatchNormalization)            │                        │               │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ max_pooling2d_1 (MaxPooling2D)  │ (None, 45, 45, 128)    │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout (Dropout)               │ (None, 45, 45, 128)    │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ conv2d_2 (Conv2D)               │ (None, 45, 45, 128)    │       409,728 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ batch_normalization_2           │ (None, 45, 45, 128)    │           512 │
+│ (BatchNormalization)            │                        │               │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ max_pooling2d_2 (MaxPooling2D)  │ (None, 22, 22, 128)    │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout_1 (Dropout)             │ (None, 22, 22, 128)    │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ flatten (Flatten)               │ (None, 61952)          │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense (Dense)                   │ (None, 384)            │    23,789,952 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout_2 (Dropout)             │ (None, 384)            │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_1 (Dense)                 │ (None, 1)              │           385 │
+└─────────────────────────────────┴────────────────────────┴───────────────┘
+ Total params: 24,319,489 (92.77 MB)
+ Trainable params: 24,318,785 (92.77 MB)
+ Non-trainable params: 704 (2.75 KB)
+
+
 
 # Generators 
 Batch size is set to 16.
@@ -113,64 +233,21 @@ Use of early stopping to prevent overfitting
 Efficient batch processing of data
 The use of ResNet50's preprocessing function also hints that transfer learning or a ResNet50-based model might be used in the full pipeline.
 
-# Model Accuracy and Model Loss
-graph:
 
-## Model Accuracy (Left Graph):
-
-The blue line represents the training accuracy.
-The orange line represents the validation accuracy.
-Both accuracies start around 0.60-0.65 and generally increase over time.
-There's significant fluctuation in both lines, especially in the validation accuracy.
-The highest validation accuracy appears to be around 0.75-0.76.
-Towards the end (after epoch 25), there's a noticeable drop in validation accuracy while training accuracy continues to rise, which might indicate overfitting.
-
-
-## Model Loss (Right Graph):
-
-Again, the blue line is for training loss and the orange for validation loss.
-Both losses start high (around 1.5-1.6) and generally decrease over time.
-The validation loss is more volatile than the training loss, especially in the early epochs.
-After about epoch 10, the training and validation losses converge and follow similar patterns.
-The final losses are around 1.1-1.2.
-
-
-
-Key Observations:
-
-The model is learning, as indicated by the general increase in accuracy and decrease in loss over time.
-There's significant volatility in the validation metrics, suggesting the model might be sensitive to the specific examples in each validation batch.
-The divergence between training and validation accuracy towards the end might indicate the onset of overfitting.
-The model doesn't seem to plateau completely, suggesting that further training or adjustments might yield improvements.
-The final validation accuracy is around 65-70%, which may or may not be satisfactory depending on the specific problem and requirements.
 
 
 # Output
-## Test Process:
-The model was evaluated on 313 steps (batches) of test data.
-It took approximately 19 seconds total, with an average of 54ms per step.
+
 
 ## Test Metrics:
-# Test Loss: 1.041985273361206
-This is the average loss (error) of the model on the test set.
-Lower values indicate better performance.
-The loss function used was likely binary cross-entropy, given the binary classification task.
+# Test Loss: 1.0851091146469116
+This value represents the average loss on the test dataset. The loss function used here is binary crossentropy (since this is a binary classification task). The loss is higher than expected for a well-performing model, which could indicate overfitting, issues with hyperparameter tuning, or further optimization needed for the model.
 
 
-# Test Accuracy: 0.7139999866485596 (about 71.4%)
-This represents the proportion of correct predictions on the test set.
-It means the model correctly classified about 71.4% of the test samples.
-
-## Interpretation:
-The test accuracy (71.4%) is slightly higher than the final validation accuracy seen in the training graphs (which appeared to be around 65-70%).
-This suggests that the model generalizes reasonably well to unseen data.
-A 71.4% accuracy for a binary classification task is above random guessing (50%), indicating that the model has learned useful patterns.
-However, depending on the specific problem and requirements, this accuracy might or might not be considered good enough. For many real-world binary classification tasks, higher accuracy would typically be desired.
+# Test Accuracy: 0.7483999729156494 (about 74.8%) While the RESNet is 98% accurate
+This indicates that the model correctly classified around 74.84% of the images in the test dataset. While this is a decent accuracy, there is likely room for improvement, especially given the simplicity of the binary classification task (dogs vs. cats). A higher accuracy, typically above 85-90%, is often expected for well-optimized models in such tasks.
 
 
-## Considerations:
-The test loss (1.04) is slightly lower than the final validation loss seen in the training graphs (which was around 1.1-1.2). This is a good sign, indicating that the model isn't overfitting to the validation set.
-The accuracy achieved suggests there's room for improvement. Depending on the application, you might consider:
 
 Further hyperparameter tuning
 Trying different model architectures
@@ -185,26 +262,7 @@ Matrix Structure:
 The y-axis represents the true labels (actual class)
 The x-axis represents the predicted labels (model's predictions)
 
-## Classification Results:
 
-True Positives (Cats correctly identified as cats): 1548
-True Negatives (Dogs correctly identified as dogs): 1018
-False Positives (Dogs incorrectly classified as cats): 952
-False Negatives (Cats incorrectly classified as dogs): 1482
-
-
-## Model Performance:
-
-The model seems to have a bias towards classifying images as cats, as evidenced by the higher number of false positives for cats compared to false negatives.
-The accuracy for identifying cats (1548 / (1548 + 1482) ≈ 51.1%) is slightly better than random guessing.
-The accuracy for identifying dogs (1018 / (1018 + 952) ≈ 51.7%) is also slightly better than random guessing.
-
-
-## Overall Performance:
-
-Total correct predictions: 1548 + 1018 = 2566
-Total predictions: 1548 + 1482 + 952 + 1018 = 5000
-Overall accuracy: 2566 / 5000 = 51.32%
 
 
 ## Interpretation:
